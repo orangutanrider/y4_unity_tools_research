@@ -1,0 +1,10 @@
+# Misc
+*.lnk
+*.url
+
+# Wwise
+*.wsettings
+*.validationcache
+*.prof
+*.akd
+.cache
