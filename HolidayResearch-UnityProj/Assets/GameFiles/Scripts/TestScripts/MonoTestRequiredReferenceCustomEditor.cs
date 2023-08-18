@@ -10,7 +10,8 @@ public class MonoTestRequiredReferenceCustomEditor : Editor
     SerializedProperty requiredReferenceMonobehaviour;
     SerializedProperty requiredReferenceScriptableObject;
 
-    bool foldOutShow = true;
+    bool requiredReferencesGroup = false;
+
     private void OnEnable()
     {
         requiredReferenceGameobject = serializedObject.FindProperty("requiredReferenceGameobject");
@@ -22,11 +23,15 @@ public class MonoTestRequiredReferenceCustomEditor : Editor
     {
         MonoTestRequiredReference testMonobehaviour = (MonoTestRequiredReference)target;
 
-        EditorGUILayout.BeginFadeGroup(1f);
-        EditorGUILayout.PropertyField(requiredReferenceGameobject);
-        EditorGUILayout.PropertyField(requiredReferenceMonobehaviour);
-        EditorGUILayout.PropertyField(requiredReferenceScriptableObject);
-        EditorGUILayout.EndFadeGroup();
+        requiredReferencesGroup = EditorGUILayout.BeginFoldoutHeaderGroup(requiredReferencesGroup, "Required References");
+        if (requiredReferencesGroup)
+        {
+            EditorGUILayout.PropertyField(requiredReferenceGameobject);
+            EditorGUILayout.PropertyField(requiredReferenceMonobehaviour);
+            EditorGUILayout.PropertyField(requiredReferenceScriptableObject);
+            EditorGUILayout.Separator();
+        }
+        EditorGUILayout.EndFoldoutHeaderGroup();
 
         #region Display Error 
         bool isThereNullReference = false;
