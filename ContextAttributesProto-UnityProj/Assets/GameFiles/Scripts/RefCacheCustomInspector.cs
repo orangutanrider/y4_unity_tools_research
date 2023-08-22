@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 
+[EditorWindowTitle(icon = "Assets/GameFiles/Window Icons/Test/Five Pebbles has had enough of you - 2 Dolla bill.png", title = windowTitle, useTypeNameAsIconName = false)]
 public class RefCacheCustomInspector : EditorWindow
 {
     // Refactor this once the system is done
@@ -19,12 +20,32 @@ public class RefCacheCustomInspector : EditorWindow
             requiredReferences = new List<SerializedProperty>();
             nullableRequired = new List<SerializedProperty>();
             componentNullable = new List<SerializedProperty>();
+
+            inheritedRequiredReferences = new List<InheritedReferenceCache>();
+            inheritedNullableRequired = new List<InheritedReferenceCache>();
+            inheritedComponentNullable = new List<InheritedReferenceCache>();
         }
 
         public SerializedObject serializedObject;
         public List<SerializedProperty> requiredReferences;
         public List<SerializedProperty> nullableRequired;
         public List<SerializedProperty> componentNullable;
+
+        public List<InheritedReferenceCache> inheritedRequiredReferences;
+        public List<InheritedReferenceCache> inheritedNullableRequired;
+        public List<InheritedReferenceCache> inheritedComponentNullable;
+    }
+
+    private struct InheritedReferenceCache
+    {
+        public InheritedReferenceCache(string _typeName)
+        {
+            typeName = _typeName;
+            properties = new List<SerializedProperty>();
+        }
+
+        public string typeName;
+        public List<SerializedProperty> properties;
     }
 
     bool locked = false;
@@ -78,7 +99,7 @@ public class RefCacheCustomInspector : EditorWindow
         else
         {
             locked = GUI.Toggle(position, locked, GUIContent.none, lockButtonStyle);
-            if (locked == false)
+            if (locked == false)    
             {
                 ReSelect();
             }
@@ -87,13 +108,13 @@ public class RefCacheCustomInspector : EditorWindow
 
     public static void Open(Object requestingObject, GameObject requestingHostObject = null)
     {
-        RefCacheCustomInspector window = GetWindow<RefCacheCustomInspector>(windowTitle);
+        RefCacheCustomInspector window = GetWindow<RefCacheCustomInspector>();
 
         if (requestingHostObject != null)
         {
             Selection.activeObject = requestingHostObject;
         }
-        else
+        else if (requestingObject != null)
         {
             Selection.activeObject = requestingObject;
         }
@@ -140,6 +161,16 @@ public class RefCacheCustomInspector : EditorWindow
         {
             EditorGUILayout.PropertyField(serializedProperty);
         }
+
+        foreach (InheritedReferenceCache inheritedReferenceCache in referenceCache.inheritedRequiredReferences)
+        {
+            EditorGUILayout.LabelField(inheritedReferenceCache.typeName);
+            foreach (SerializedProperty serializedProperty in inheritedReferenceCache.properties)
+            {
+                EditorGUILayout.PropertyField(serializedProperty);
+            }
+        }
+
         EditorGUILayout.EndFoldoutHeaderGroup();
     }
 
@@ -173,8 +204,13 @@ public class RefCacheCustomInspector : EditorWindow
     ReferenceCache GetAllReferences(ReferenceCache referenceCache)
     {
         referenceCache.requiredReferences = GetRequiredReferences(referenceCache.serializedObject);
+        referenceCache.inheritedRequiredReferences = GetInheritedRequiredReferences(referenceCache.serializedObject);
+
         referenceCache.nullableRequired = GetNullableRequired(referenceCache.serializedObject);
+        //referenceCache.inheritedRequiredReferences = GetInheritedRequiredReferences(referenceCache.serializedObject);
+
         referenceCache.componentNullable = GetComponentNullable(referenceCache.serializedObject);
+        //referenceCache.inheritedRequiredReferences = GetInheritedRequiredReferences(referenceCache.serializedObject);
         return referenceCache;
     }
 
@@ -207,6 +243,56 @@ public class RefCacheCustomInspector : EditorWindow
             {
                 returnList.Add(serializedObject.FindProperty(member.Name));
             }
+        }
+
+        return returnList;
+    }
+
+    // in the refactor, make the type an input parameter for both GetRequiredReferences and this, so they can share the references]
+    // Could do this for members too, the other gets could share that with each other
+    List<InheritedReferenceCache> GetInheritedRequiredReferences(SerializedObject serializedObject)
+    {
+        //https://discussions.unity.com/t/derived-class-serialization/173546/3
+        // Impossible? It's hard to know, I'm unsure if they're talking about something similar to what I'm doing here
+        // Currently it only works with protected fields
+        // However, the normal inspector doesn't have this limitation
+        // So what is going on here!?
+        // Hmm, I don't know, it seems like a dead end and I can't find anything on it, so I'll just accept this limitation.
+
+        System.Type currentType = serializedObject.targetObject.GetType();
+
+        List<InheritedReferenceCache> returnList = new List<InheritedReferenceCache>();
+
+        if (currentType.GetCustomAttribute<FieldReferenceInheritorAttribute>() == null) { return returnList; }
+
+        bool baseHasReferenceFields = true;
+        while (baseHasReferenceFields)
+        {
+            currentType = currentType.BaseType;
+            if(currentType.GetCustomAttribute<FieldReferenceInheritorAttribute>() == null)
+            {
+                baseHasReferenceFields = false;
+                continue;
+            }
+
+            InheritedReferenceCache loopReturnCache = new InheritedReferenceCache(currentType.Name);
+
+            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            MemberInfo[] members = currentType.GetMembers(flags);
+
+            foreach (MemberInfo member in members)
+            {
+                if (member.CustomAttributes.ToArray().Length == 0) { continue; }
+
+                RequiredReferenceAttribute requiredReferenceAtt = member.GetCustomAttribute<RequiredReferenceAttribute>();
+                if (requiredReferenceAtt != null)
+                {
+                    loopReturnCache.properties.Add(serializedObject.FindProperty(member.Name));
+
+                }
+            }
+
+            returnList.Add(loopReturnCache);
         }
 
         return returnList;
