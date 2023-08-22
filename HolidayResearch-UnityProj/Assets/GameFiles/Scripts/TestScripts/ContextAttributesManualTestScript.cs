@@ -4,6 +4,6 @@ using UnityEngine;
 
 public class ContextAttributesManualTestScript : MonoBehaviour
 {
-    [RequiredReference]
+    [TestRequiredReference]
     public GameObject requiredReferenceField;
 }

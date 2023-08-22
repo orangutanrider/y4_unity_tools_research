@@ -191,7 +191,7 @@ public class ContextAttributesManualTestScriptCustomEditor : Editor
         {
             if (member.CustomAttributes.ToArray().Length > 0)
             {
-                RequiredReferenceAttribute attribute = member.GetCustomAttribute<RequiredReferenceAttribute>();
+                TestRequiredReferenceAttribute attribute = member.GetCustomAttribute<TestRequiredReferenceAttribute>();
                 if (attribute != null)
                 {
                     attributedMemberData.Add(member);
