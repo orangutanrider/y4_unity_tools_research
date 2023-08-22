@@ -7,6 +7,12 @@ using System.Linq;
 [EditorWindowTitle(icon = "Assets/GameFiles/Window Icons/Test/Five Pebbles has had enough of you - 2 Dolla bill.png", title = windowTitle, useTypeNameAsIconName = false)]
 public class RefCacheCustomInspector : EditorWindow
 {
+    // Discovery: the inheritance reference cache thing doesn't even do anything in its current implementation
+    // The script just draws protected types via how it worked before hand
+    // the inheritance reference cache thing is broken or something
+    // you can tell because the label doesn't get drawn
+    // I would guess the cause for this is that it's not detecting the attribute I made
+
     // Refactor this once the system is done
 
     // Create basic GUI, then research how to create better GUI
@@ -164,6 +170,7 @@ public class RefCacheCustomInspector : EditorWindow
 
         foreach (InheritedReferenceCache inheritedReferenceCache in referenceCache.inheritedRequiredReferences)
         {
+            Debug.Log("e"); 
             EditorGUILayout.LabelField(inheritedReferenceCache.typeName);
             foreach (SerializedProperty serializedProperty in inheritedReferenceCache.properties)
             {
