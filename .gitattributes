@@ -134,3 +134,4 @@
 # Misc
 *.pdf lfs
 *.ttf lfs
+*.lnk lfs
