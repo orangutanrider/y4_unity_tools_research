@@ -108,7 +108,7 @@ public class SceneAssetRefInspector : CustomInspector
 
         foreach(SerializedProperty serializedProperty in sceneAssetObj.requiredReferences)
         {
-            EditorGUILayout.PropertyField(serializedProperty);
+            EditorGUILayout.PropertyField(serializedProperty );
         }
     }
     void DrawInheritedRequiredReference(SceneAssetRefsObj sceneAssetObj)
@@ -118,10 +118,10 @@ public class SceneAssetRefInspector : CustomInspector
 
         foreach (InheritedSerializedProperties inheritedProperties in sceneAssetObj.inheritedRequiredReferences)
         {
-            EditorGUILayout.LabelField(inheritedProperties.type.Name);
             foreach (SerializedProperty serializedProperty in inheritedProperties.properties)
             {
-                EditorGUILayout.PropertyField(serializedProperty);
+                GUIContent label = new GUIContent("(" + inheritedProperties.type.Name + ") " + serializedProperty.displayName);
+                EditorGUILayout.PropertyField(serializedProperty, label);
             }
         }
     }
@@ -150,10 +150,10 @@ public class SceneAssetRefInspector : CustomInspector
 
         foreach (InheritedSerializedProperties inheritedProperties in sceneAssetObj.inheritedNullableRequired)
         {
-            EditorGUILayout.LabelField(inheritedProperties.type.Name);
             foreach (SerializedProperty serializedProperty in inheritedProperties.properties)
             {
-                EditorGUILayout.PropertyField(serializedProperty);
+                GUIContent label = new GUIContent("(" + inheritedProperties.type.Name + ") " + serializedProperty.displayName);
+                EditorGUILayout.PropertyField(serializedProperty, label);
             }
         }
     }
@@ -182,10 +182,10 @@ public class SceneAssetRefInspector : CustomInspector
 
         foreach (InheritedSerializedProperties inheritedProperties in sceneAssetObj.inheritedComponentNullable)
         {
-            EditorGUILayout.LabelField(inheritedProperties.type.Name);
             foreach (SerializedProperty serializedProperty in inheritedProperties.properties)
             {
-                EditorGUILayout.PropertyField(serializedProperty);
+                GUIContent label = new GUIContent("(" + inheritedProperties.type.Name + ") " + serializedProperty.displayName);
+                EditorGUILayout.PropertyField(serializedProperty, label);
             }
         }
     }
