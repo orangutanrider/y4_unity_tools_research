@@ -43,7 +43,7 @@ namespace EditorUtilities.AttributedSerializedExtensions
                 }
 
                 InheritedSerializedProperties loopProperties = new InheritedSerializedProperties(currentType);
-                loopProperties.properties = GetPropertiesAttributedWithType(attributeType, serializedObject);
+                loopProperties.properties = GetPropertiesAttributedWithType(attributeType, serializedObject, memberInfo);
                 returnList.Add(loopProperties);
 
                 if (currentType.GetCustomAttribute<SerializedPropertyInheritorAttribute>() == null)
@@ -89,7 +89,7 @@ namespace EditorUtilities.AttributedSerializedExtensions
                 }
 
                 InheritedSerializedProperties loopProperties = new InheritedSerializedProperties(currentType);
-                loopProperties.properties = GetPropertiesAttributedWithType(attributeType, serializedObject, flags);
+                loopProperties.properties = GetPropertiesAttributedWithType(attributeType, serializedObject, memberInfo);
                 returnList.Add(loopProperties);
 
                 if (currentType.GetCustomAttribute<SerializedPropertyInheritorAttribute>() == null)
