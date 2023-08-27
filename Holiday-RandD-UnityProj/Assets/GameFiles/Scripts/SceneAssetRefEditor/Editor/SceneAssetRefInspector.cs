@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using EditorUtilities.AttributedSerializedExtensions;
 
-[EditorWindowTitle(icon = "Assets/GameFiles/Scripts/SceneAssetRefEditor/SceneAssetRefInspectorIcon.png", title = " Scene/Asset Ref Inspector")]
+[EditorWindowTitle(icon = "Assets/GameFiles/Scripts/SceneAssetRefEditor/Editor/SceneAssetRefInspectorIcon.png", title = " Scene/Asset Ref Inspector")]
 public class SceneAssetRefInspector : CustomInspector
 {
     static readonly System.Type[] allAttributeTypes = new System.Type[] { typeof(RequiredReferenceAttribute), typeof(NullableRequiredAttribute), typeof(ComponentNullableAttribute) };
