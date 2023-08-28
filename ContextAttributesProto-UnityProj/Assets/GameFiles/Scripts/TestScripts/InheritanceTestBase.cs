@@ -8,5 +8,5 @@ public class InheritanceTestBase : MonoBehaviour
     [SerializeField] float z;
 
     [SerializeField, HideInInspector, RequiredReference]
-    GameObject fieldBase;
+    protected GameObject fieldBase;
 }
