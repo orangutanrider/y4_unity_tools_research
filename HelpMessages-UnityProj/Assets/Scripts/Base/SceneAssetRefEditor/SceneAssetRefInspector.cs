@@ -46,6 +46,13 @@ public class SceneAssetRefInspector : CustomInspector
         Open(typeof(SceneAssetRefInspector));
     }
 
+    [HelpMessageEditorProvider]
+    public static void SendHelpMessages()
+    {
+        // This works
+        Debug.Log("E");
+    }
+
     #region GUI Drawing
     void DrawSceneAssetRefsObj(SceneAssetRefsObj sceneAssetObj)
     {
