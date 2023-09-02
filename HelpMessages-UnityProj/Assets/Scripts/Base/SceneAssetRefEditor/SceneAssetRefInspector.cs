@@ -11,6 +11,8 @@ public class SceneAssetRefInspector : CustomInspector
 
     List<SceneAssetRefsObj> sceneAssetRefsObjs = new List<SceneAssetRefsObj>();
 
+    public const string readMe = "Bla, bla bla bla, bla. Bla, bla, bla, BLa, bla,bal, aslb dblal balsa bldsal bldas, Pooter, hooter, footer, looter, pootis.";
+
     private void OnGUI()
     {
         StartGUIContent();
@@ -46,11 +48,22 @@ public class SceneAssetRefInspector : CustomInspector
         Open(typeof(SceneAssetRefInspector));
     }
 
-    [HelpMessageEditorProvider]
-    public static void SendHelpMessages()
+    [HelpMessageEditorProvider] // could possibly do it based on method name, rather than attribute
+    public static List<HelpMessageData> SendHelpMessages(Object unityObj, GameObject gameObject)
     {
-        // This works
-        Debug.Log("E");
+        if (gameObject != null)
+        {
+            if (gameObject.name == "E")
+            {
+                Debug.Log("El Gringo");
+            }
+        }
+
+        List<HelpMessageData> returnList = new List<HelpMessageData>();
+
+        returnList.Add(new HelpMessageData("POOOTIS?!?!", MessageType.Info, true));
+
+        return returnList;
     }
 
     #region GUI Drawing
