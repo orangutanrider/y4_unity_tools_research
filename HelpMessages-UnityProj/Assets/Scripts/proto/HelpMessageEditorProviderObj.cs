@@ -3,12 +3,12 @@ using System;
 
 public class HelpMessageEditorProviderObj 
 {
-    public HelpMessageEditorProviderObj(Type _type)
+    public HelpMessageEditorProviderObj(Type _editorType)
     {
-        type = _type;
+        editorType = _editorType;
         helpMessages = new List<HelpMessageData>();
     }
 
-    public Type type = null;
-    public List<HelpMessageData> helpMessages = null;
+    public Type editorType = null;
+    public List<HelpMessageData> helpMessages = null; 
 }

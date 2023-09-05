@@ -9,43 +9,36 @@ using EditorUtilities.AttributedSerializedExtensions;
 
 public class HelpMessageInspector : CustomInspector
 {
-    List<HelpMessageProviderObj> inspectedProviders = new List<HelpMessageProviderObj>();
-
-    List<HelpMessageEditorProviderObj> editorMessages = new List<HelpMessageEditorProviderObj>();
+    List<HelpMessagesComponentObj> inspectedComponents = new List<HelpMessagesComponentObj>();
 
     private void OnGUI()
     {
         StartGUIContent();
 
-        // Should probably add formatting options for the editors
-        // As in somekind of API thing
-        // This'd be in the interest of allowing them to post their messages under inspector title bars of select components
-        // Though, maybe that isn't needed
-        // No yeh, I should definetly do that, otherwise these messages don't really make any sense
-        if (editorMessages != null)
+        foreach (HelpMessagesComponentObj component in inspectedComponents)
         {
-            foreach (HelpMessageEditorProviderObj editorMessage in editorMessages)
+            bool areThereObjectMessages = DoesComponentContainAnyObjectMessages(component);
+            bool areThereEditorMessages = DoesComponentContainAnyEditorMessage(component);
+
+            if (areThereObjectMessages == false && areThereEditorMessages == false) { continue; }
+
+            EditorGUILayout.InspectorTitlebar(true, component.serializedObject.targetObject);
+
+            if (areThereObjectMessages == true)
             {
-                EditorGUILayout.LabelField(editorMessage.type.Name);
-                foreach (HelpMessageData messageData in editorMessage.helpMessages)
-                {
-                    if (messageData.active == true)
-                    {
-                        EditorGUILayout.HelpBox(messageData.message, messageData.messageType, true);
-                    }
-                }
+                DrawObjectMessages(component.componentMessages);
             }
-        }
 
-        foreach(HelpMessageProviderObj provider in inspectedProviders)
-        {
-            EditorGUILayout.InspectorTitlebar(true, provider.serializedObject.targetObject);
-
-            foreach(HelpMessageData helpMessageData in provider.helpMessages)
+            if (areThereObjectMessages == true && areThereEditorMessages == true)
             {
-                if (helpMessageData.active == true)
+                DrawInspectorEndLine(); // replace this with something different in the refactor, make the line not cut across the entire window
+            }
+
+            if (areThereEditorMessages == true)
+            {
+                foreach (HelpMessageEditorProviderObj editorObj in component.editorsMessages)
                 {
-                    EditorGUILayout.HelpBox(helpMessageData.message, helpMessageData.messageType, true);
+                    DrawEditorMessages(editorObj);
                 }
             }
         }
@@ -55,52 +48,92 @@ public class HelpMessageInspector : CustomInspector
         EndGUIContent();
     }
 
-    protected override void SelectionUpdate(Object newSelectedObject, GameObject newSelectedGameObject)
-    {
-        IHelpMessageProvider[] newProviders = newSelectedGameObject.GetComponents<IHelpMessageProvider>();
-
-        inspectedProviders.Clear();
-        foreach(IHelpMessageProvider provider in newProviders)
-        {
-            HelpMessageProviderObj newProvider = new HelpMessageProviderObj(provider, new SerializedObject((MonoBehaviour)provider));
-            inspectedProviders.Add(newProvider);
-            newProvider.helpMessages = provider.GetMessages();
-        }
-    }
-
     private void OnSelectionChange()
     {
-        //HelpMessageTypeStorage typeStorage = Resources.Load<HelpMessageTypeStorage>("Assets/Scripts/proto/HelpMessageTypeStorage.asset");
-        //Debug.Log(typeStorage);
-        // Returns null
+        repaintBuffer = 0;
 
-        //HelpMessageTypeStorage typeStorage = Resources.GetBuiltinResource<HelpMessageTypeStorage>("Assets/Scripts/proto/HelpMessageTypeStorage.asset");
-        //Debug.Log(typeStorage);
+        if (Locked == true)
+        {
+            GetEditorMessages();
+            Repaint();
+            return;
+        }
 
-        /*
-        Debug.Log(typeStorage.methodList[0].Name);
-        object[] parameters = { Selection.activeObject, Selection.activeGameObject };
-        List<HelpMessageData> messageData = (List<HelpMessageData>)typeStorage.methodList[0].Invoke(this, parameters);
-        */
+        if (TryGetNewInspectedViaGameObj(Selection.activeGameObject) == true)
+        {
+            GetObjectMessages();
+            GetEditorMessages();
+            Repaint();
+            return;
+        }
 
-        editorMessages = GetEditorMessages();
+        if (TryGetNewInspectedViaObj(Selection.activeObject) == true)
+        {
+            GetObjectMessages();
+            GetEditorMessages();
+            Repaint();
+            return;
+        }
+
+        Debug.LogWarning("E");
     }
 
-    List<HelpMessageEditorProviderObj> GetEditorMessages()
+    protected override void ButtonUnlocked()
+    {
+        OnSelectionChange();
+    }
+
+    public static void RequestMessageUpdate()
+    {
+        if (HasOpenInstances<HelpMessageInspector>() == false) { return; }
+
+        HelpMessageInspector window = GetWindow<HelpMessageInspector>();
+        window.GetEditorMessages();
+        window.repaintBuffer = 0;
+        window.Repaint();
+    }
+
+    bool TryGetNewInspectedViaGameObj(GameObject gameObject)
+    {
+        if (gameObject == null) { return false; }
+
+        MonoBehaviour[] newInspected = gameObject.GetComponents<MonoBehaviour>();
+
+        inspectedComponents.Clear();
+        foreach (MonoBehaviour inspected in newInspected)
+        {
+            HelpMessagesComponentObj helpMsgObj = new HelpMessagesComponentObj(new SerializedObject(inspected));
+            inspectedComponents.Add(helpMsgObj);
+        }
+        return true;
+    }
+
+    bool TryGetNewInspectedViaObj(Object obj)
+    {
+        if (obj == null) { return false; }
+
+        inspectedComponents.Clear();
+        HelpMessagesComponentObj helpMsgObj = new HelpMessagesComponentObj(new SerializedObject(obj));
+        inspectedComponents.Add(helpMsgObj);
+        return true;
+    }
+
+    #region Editor Messages
+    void GetEditorMessages()
     {
         HelpMessageTypeStorage typeStorage = Resources.Load<HelpMessageTypeStorage>("HelpMessageTypeStorage");
+        if (typeStorage == null) { return; }
+        if (typeStorage.methodList == null) { return; }
+        if (typeStorage.methodList.Count == 0) { return; }
 
-        if (typeStorage == null) { return null; }
-        if (typeStorage.methodList == null) { return null; }
-        if (typeStorage.methodList.Count == 0) { return null; }
-
-        // make this a readonly variable in the refactor
-        object[] parameters = { Selection.activeObject, Selection.activeGameObject };
-
-        List<HelpMessageEditorProviderObj> returnList = new List<HelpMessageEditorProviderObj>();
+        foreach (HelpMessagesComponentObj component in inspectedComponents)
+        {
+            component.editorsMessages.Clear();
+        }
 
         foreach (MethodInfo method in typeStorage.methodList)
         {
+            #region Check if the method is valid
             if (method.ReturnType != typeof(List<HelpMessageData>))
             {
                 Debug.LogError("A");
@@ -114,31 +147,118 @@ public class HelpMessageInspector : CustomInspector
                 continue;
             }
 
-            if (methodParams.Length != 2)
+            if (methodParams.Length != 1)
             {
                 Debug.LogError("C");
                 continue;
             }
 
-            if(methodParams[0].ParameterType != typeof(Object))
+            if (methodParams[0].ParameterType != typeof(SerializedObject))
             {
                 Debug.LogError("D");
                 continue;
             }
+            #endregion
 
-            if (methodParams[1].ParameterType != typeof(GameObject))
+            foreach (HelpMessagesComponentObj component in inspectedComponents)
             {
-                Debug.LogError("E");
-                continue;
+                if (component == null) { continue; }
+                if (component.serializedObject == null) { continue; }
+
+                object[] parameters = { component.serializedObject };
+
+                List<HelpMessageData> editorMessages = (List<HelpMessageData>)method.Invoke(this, parameters);
+                HelpMessageEditorProviderObj loopReturn = new HelpMessageEditorProviderObj(method.DeclaringType);
+                loopReturn.helpMessages = editorMessages; // in the refactor make it optional to include this in the decleration
+
+                component.editorsMessages.Add(loopReturn);
             }
+        }
+    }
 
-            List<HelpMessageData> editorMessages = (List<HelpMessageData>) method.Invoke(this, parameters);
-            HelpMessageEditorProviderObj loopReturn = new HelpMessageEditorProviderObj(method.DeclaringType);
-            loopReturn.helpMessages = editorMessages; // in the refactor make it optional to include this in the decleration
+    void DrawEditorMessages(HelpMessageEditorProviderObj helpMessageObj)
+    {
+        foreach (HelpMessageData messageData in helpMessageObj.helpMessages)
+        {
+            if (messageData.active == false) { continue; }
+            EditorGUILayout.HelpBox("(" + helpMessageObj.editorType.Name + ") " + messageData.message, messageData.messageType, true);
+        }
+    }
 
-            returnList.Add(loopReturn);
+    bool DoesComponentContainAnyEditorMessage(HelpMessagesComponentObj component)
+    {
+        if (component == null) { return false; }
+        if (component.editorsMessages == null) { return false; }
+
+        foreach (HelpMessageEditorProviderObj editorMessages in component.editorsMessages)
+        {
+            if (editorMessages == null) { continue; }
+            if (editorMessages.helpMessages == null) { continue; }
+
+            foreach (HelpMessageData messageData in editorMessages.helpMessages)
+            {
+                if (messageData == null) { continue; }
+                if (messageData.active == true) { return true; }
+            }
         }
 
-        return returnList;
+        return false;
     }
+    #endregion
+
+    #region Object Messages
+    void GetObjectMessages()
+    {
+        foreach (HelpMessagesComponentObj component in inspectedComponents)
+        {
+            System.Type[] interfaces = component.serializedObject.targetObject.GetType().GetInterfaces();
+            if (interfaces == null) { continue; }
+
+            if (ValidInterfaceExists(interfaces) == false) { continue; }
+
+            IHelpMessageProvider msgProviderInterface = (IHelpMessageProvider)component.serializedObject.targetObject;
+            HelpMessageProviderObj msgProvider = new HelpMessageProviderObj(msgProviderInterface);
+            msgProvider.helpMessages = msgProviderInterface.GetMessages();
+
+            component.componentMessages = msgProvider;
+        }
+    }
+
+    bool ValidInterfaceExists(System.Type[] interfaces)
+    {
+        foreach (System.Type providerInterface in interfaces)
+        {
+            if (providerInterface == typeof(IHelpMessageProvider))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void DrawObjectMessages(HelpMessageProviderObj helpMessageObj)
+    {
+        foreach (HelpMessageData messageData in helpMessageObj.helpMessages)
+        {
+            if (messageData.active == false) { continue; }
+            EditorGUILayout.HelpBox(messageData.message, messageData.messageType, true);
+        }
+    }
+
+    bool DoesComponentContainAnyObjectMessages(HelpMessagesComponentObj component)
+    {
+        if (component == null) { return false; }
+        if (component.componentMessages == null) { return false; }
+
+        if (component.componentMessages.helpMessages == null) { return false; }
+
+        foreach (HelpMessageData messageData in component.componentMessages.helpMessages)
+        {
+            if (messageData == null) { continue; }
+            if (messageData.active == true) { return true; }
+        }
+
+        return false;
+    }
+    #endregion
 }
