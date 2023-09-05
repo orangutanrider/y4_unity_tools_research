@@ -13,7 +13,7 @@ public abstract class CustomInspector : EditorWindow
     // This exists because there is a weird thing with the vertical group's return value. Every other call, it returns a height of 0, then the next call it returns the actual height of the content.
     // Don't know why or what is happening there, but I fixed by storing the valid values here, and if the height is 0, it uses this instead of the height gotten on that call.
     Rect previousContentRect = Rect.zero;
-    int repaintBuffer = 1;
+    protected int repaintBuffer = 1;
 
     const int scrollBarWidth = 13;
 
@@ -22,7 +22,9 @@ public abstract class CustomInspector : EditorWindow
         minSize = new Vector2(225, 100);
     }
     
-    protected abstract void SelectionUpdate(Object newSelectedObject, GameObject newSelectedGameObject);
+    protected virtual void SelectionUpdate(Object newSelectedObject, GameObject newSelectedGameObject) { }
+
+    protected virtual void ButtonUnlocked() { }
 
     private void OnSelectionChange()
     {
@@ -51,9 +53,8 @@ public abstract class CustomInspector : EditorWindow
             Locked = GUI.Toggle(position, Locked, GUIContent.none, lockButtonStyle);
             if (Locked == false)
             {
-                SelectionUpdate(Selection.activeObject, Selection.activeGameObject);
-                repaintBuffer = 0;
-                Repaint();
+                OnSelectionChange();
+                ButtonUnlocked();
             }
         }
     }

@@ -13,18 +13,33 @@ public class SceneAssetRefInspector : CustomInspector
 
     public const string readMe = "Bla, bla bla bla, bla. Bla, bla, bla, BLa, bla,bal, aslb dblal balsa bldsal bldas, Pooter, hooter, footer, looter, pootis.";
 
+    static readonly HelpMessageData requiredReferenceMsg = new HelpMessageData("There are NULL Required References.", MessageType.Error);
+    static readonly HelpMessageData nullableRequiredMsg = new HelpMessageData("There are NULL Nullable Required.", MessageType.Warning);
+    static readonly HelpMessageData componentNullableMsg = new HelpMessageData("There are NULL Component Nullable.", MessageType.Info);
+
     private void OnGUI()
     {
+        bool changesApplied = false;
+
         StartGUIContent();
 
         // Content
         foreach (SceneAssetRefsObj sceneAssetObj in sceneAssetRefsObjs)
         {
             DrawSceneAssetRefsObj(sceneAssetObj);
+            if (sceneAssetObj.serializedObject.ApplyModifiedProperties() == true)
+            {
+                changesApplied = true;
+            }
         }
         DrawInspectorEndLine();
 
         EndGUIContent();
+
+        if(changesApplied == true)
+        {
+            HelpMessageInspector.RequestMessageUpdate();
+        }
     }
 
     protected override void SelectionUpdate(Object newSelectedObject, GameObject newSelectedGameObject)
@@ -49,19 +64,30 @@ public class SceneAssetRefInspector : CustomInspector
     }
 
     [HelpMessageEditorProvider] // could possibly do it based on method name, rather than attribute
-    public static List<HelpMessageData> SendHelpMessages(Object unityObj, GameObject gameObject)
+    public static List<HelpMessageData> SendHelpMessages(SerializedObject serializedObject)
     {
-        if (gameObject != null)
-        {
-            if (gameObject.name == "E")
-            {
-                Debug.Log("El Gringo");
-            }
-        }
-
         List<HelpMessageData> returnList = new List<HelpMessageData>();
 
-        returnList.Add(new HelpMessageData("POOOTIS?!?!", MessageType.Info, true));
+        List<SceneAssetRefsObj> sceneAssetRefs = new List<SceneAssetRefsObj>();
+        if(TryGetSceneAssetRefs(serializedObject.targetObject, ref sceneAssetRefs) == false) { return returnList; }
+
+        foreach (SceneAssetRefsObj sceneAssetRef in sceneAssetRefs) 
+        {
+            if (DoesRequiredReferenceMsgShow(sceneAssetRef) == true)
+            {
+                returnList.Add(new HelpMessageData(requiredReferenceMsg));
+            }
+
+            if (DoesNullableRequiredMsgShow(sceneAssetRef) == true)
+            {
+                returnList.Add(new HelpMessageData(nullableRequiredMsg));
+            }
+
+            if (DoesComponentNullableMsgShow(sceneAssetRef) == true)
+            {
+                returnList.Add(new HelpMessageData(componentNullableMsg));
+            }
+        }
 
         return returnList;
     }
@@ -115,12 +141,6 @@ public class SceneAssetRefInspector : CustomInspector
     }
 
     // Required References
-    bool IsAnyRequiredReferencePresent(SceneAssetRefsObj sceneAssetObj)
-    {
-        if (sceneAssetObj.requiredReferences == null && sceneAssetObj.inheritedRequiredReferences == null) { return false; }
-        if (sceneAssetObj.requiredReferences.Count == 0 && sceneAssetObj.inheritedRequiredReferences.Count == 0) { return false; }
-        return true;
-    }
     void DrawRequiredReference(SceneAssetRefsObj sceneAssetObj)
     {
         if(sceneAssetObj.requiredReferences == null) { return; }
@@ -147,12 +167,6 @@ public class SceneAssetRefInspector : CustomInspector
     }
 
     // Nullable Required
-    bool IsAnyNullableRequiredPresent(SceneAssetRefsObj sceneAssetObj)
-    {
-        if (sceneAssetObj.nullableRequired == null && sceneAssetObj.inheritedNullableRequired == null) { return false; }
-        if (sceneAssetObj.nullableRequired.Count == 0 && sceneAssetObj.inheritedNullableRequired.Count == 0) { return false; }
-        return true;
-    }
     void DrawNullableRequired(SceneAssetRefsObj sceneAssetObj)
     {
         if (sceneAssetObj.nullableRequired == null) { return; }
@@ -179,12 +193,6 @@ public class SceneAssetRefInspector : CustomInspector
     }
 
     // Component Nullable
-    bool IsAnyComponentNullablePresent(SceneAssetRefsObj sceneAssetObj)
-    {
-        if (sceneAssetObj.componentNullable == null && sceneAssetObj.inheritedComponentNullable == null) { return false; }
-        if (sceneAssetObj.componentNullable.Count == 0 && sceneAssetObj.inheritedComponentNullable.Count == 0) { return false; }
-        return true;
-    }
     void DrawComponentNullable(SceneAssetRefsObj sceneAssetObj)
     {
         if (sceneAssetObj.componentNullable == null) { return; }
@@ -212,7 +220,123 @@ public class SceneAssetRefInspector : CustomInspector
     #endregion
 
     #region Data Processing
-    bool TryGetSceneAssetRefs(GameObject gameObject, ref List<SceneAssetRefsObj> sceneAssetObjs)
+    // Required Reference
+    static bool IsAnyRequiredReferencePresent(SceneAssetRefsObj sceneAssetObj)
+    {
+        if (sceneAssetObj.requiredReferences == null && sceneAssetObj.inheritedRequiredReferences == null) { return false; }
+        if (sceneAssetObj.requiredReferences.Count == 0 && sceneAssetObj.inheritedRequiredReferences.Count == 0) { return false; }
+        return true;
+    }
+
+    static bool DoesRequiredReferenceMsgShow(SceneAssetRefsObj sceneAssetObj)
+    {
+        if (IsAnyRequiredReferencePresent(sceneAssetObj) == false) { return false; }
+
+        foreach (SerializedProperty serializedProperty in sceneAssetObj.requiredReferences)
+        {
+            if (serializedProperty == null) { continue; }
+
+            if (serializedProperty.objectReferenceValue == null)
+            {
+                return true;
+            }
+        }
+
+        foreach (InheritedSerializedProperties inherited in sceneAssetObj.inheritedRequiredReferences)
+        {
+            foreach (SerializedProperty serializedProperty in sceneAssetObj.requiredReferences)
+            {
+                if (serializedProperty == null) { continue; }
+
+                if (serializedProperty.objectReferenceValue == null)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Nullable Required
+    static bool IsAnyNullableRequiredPresent(SceneAssetRefsObj sceneAssetObj)
+    {
+        if (sceneAssetObj.nullableRequired == null && sceneAssetObj.inheritedNullableRequired == null) { return false; }
+        if (sceneAssetObj.nullableRequired.Count == 0 && sceneAssetObj.inheritedNullableRequired.Count == 0) { return false; }
+        return true;
+    }
+
+    static bool DoesNullableRequiredMsgShow(SceneAssetRefsObj sceneAssetObj)
+    {
+        if (IsAnyNullableRequiredPresent(sceneAssetObj) == false) { return false; }
+
+        foreach (SerializedProperty serializedProperty in sceneAssetObj.nullableRequired)
+        {
+            if (serializedProperty == null) { continue; }
+
+            if (serializedProperty.objectReferenceValue == null)
+            {
+                return true;
+            }
+        }
+
+        foreach (InheritedSerializedProperties inherited in sceneAssetObj.inheritedNullableRequired)
+        {
+            foreach (SerializedProperty serializedProperty in sceneAssetObj.nullableRequired)
+            {
+                if (serializedProperty == null) { continue; }
+
+                if (serializedProperty.objectReferenceValue == null)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Component Nullable
+    static bool IsAnyComponentNullablePresent(SceneAssetRefsObj sceneAssetObj)
+    {
+        if (sceneAssetObj.componentNullable == null && sceneAssetObj.inheritedComponentNullable == null) { return false; }
+        if (sceneAssetObj.componentNullable.Count == 0 && sceneAssetObj.inheritedComponentNullable.Count == 0) { return false; }
+        return true;
+    }
+
+    static bool DoesComponentNullableMsgShow(SceneAssetRefsObj sceneAssetObj)
+    {
+        if (IsAnyComponentNullablePresent(sceneAssetObj) == false) { return false; }
+
+        foreach (SerializedProperty serializedProperty in sceneAssetObj.componentNullable)
+        {
+            if (serializedProperty == null) { continue; }
+
+            if (serializedProperty.objectReferenceValue == null)
+            {
+                return true;
+            }
+        }
+
+        foreach (InheritedSerializedProperties inherited in sceneAssetObj.inheritedComponentNullable)
+        {
+            foreach (SerializedProperty serializedProperty in sceneAssetObj.componentNullable)
+            {
+                if (serializedProperty == null) { continue; }
+
+                if (serializedProperty.objectReferenceValue == null)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    #endregion
+
+    #region SceneAssetRefsObj Generation
+    static bool TryGetSceneAssetRefs(GameObject gameObject, ref List<SceneAssetRefsObj> sceneAssetObjs)
     {
         if (gameObject == null) { return false; }
 
@@ -233,7 +357,7 @@ public class SceneAssetRefInspector : CustomInspector
         return true;
     }
 
-    bool TryGetSceneAssetRefs(Object obj, ref List<SceneAssetRefsObj> sceneAssetObjs)
+    static bool TryGetSceneAssetRefs(Object obj, ref List<SceneAssetRefsObj> sceneAssetObjs)
     {
         if (obj == null) { return false; }
 
@@ -247,7 +371,7 @@ public class SceneAssetRefInspector : CustomInspector
         return true;
     }
 
-    List<SceneAssetRefsObj> CompleteSceneAssetObjs(List<SceneAssetRefsObj> sceneAssetObjs)
+    static List<SceneAssetRefsObj> CompleteSceneAssetObjs(List<SceneAssetRefsObj> sceneAssetObjs)
     {
         List<SceneAssetRefsObj> returnList = new List<SceneAssetRefsObj>();
         foreach(SceneAssetRefsObj sceneAssetObj in sceneAssetObjs)
@@ -257,7 +381,7 @@ public class SceneAssetRefInspector : CustomInspector
         return returnList;
     }
 
-    SceneAssetRefsObj CompleteSceneAssetObj(SceneAssetRefsObj sceneAssetObj)
+    static SceneAssetRefsObj CompleteSceneAssetObj(SceneAssetRefsObj sceneAssetObj)
     {
         MemberInfo[] memberInfo = sceneAssetObj.serializedObject.GetMembers();
 
