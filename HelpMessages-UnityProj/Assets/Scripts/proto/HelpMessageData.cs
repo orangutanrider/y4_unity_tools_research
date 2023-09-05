@@ -9,6 +9,12 @@ public class HelpMessageData
         active = _active;
     }
 
+    public HelpMessageData(HelpMessageData copyFrom)
+    {
+        message = copyFrom.message;
+        messageType = copyFrom.messageType;
+        active = copyFrom.active;
+    }
 
     public bool active = false; 
     // it is probably best to not use this active thing in the refactor as someone implementing a message returner, might just make it not return messages, instead of having it return inactive ones
