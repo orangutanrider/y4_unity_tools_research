@@ -1,13 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
 public class TestScript : MonoBehaviour, IHelpMessageProvider
 {
-    [OpenCustomInspectorButton(typeof(HelpMessageInspector))]
+    [SerializeField, OpenCustomInspectorButton(typeof(HelpMessageInspector))]
+    bool openHelpMessageInspector = false;
 
-    public float e;
+    [RequiredReference]
+    public GameObject a;
+
+    [NullableRequired]
+    public GameObject b;
+
+    [ComponentNullable]
+    public GameObject c;
 
     List<HelpMessageData> IHelpMessageProvider.GetMessages()
     {
