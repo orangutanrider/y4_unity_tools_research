@@ -11,10 +11,47 @@ using System.Text.RegularExpressions;
 [CreateAssetMenu(fileName = "CodeDomTest", menuName = "Misc/CodeDomTest")]
 public class CodeDomTest : ScriptableObject
 {
-
-
     //https://learn.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/how-to-create-an-xml-documentation-file-using-codedom?redirectedfrom=MSDN
     #region Microsoft Code
+
+    // Man, this stuff makes so little sense to me
+    // What am I looking at?
+    // Hmm though, looking at some of the things this thing is having to do
+    // It has to delete a file
+    // And it also generates a .exe for some reason
+    // Does it have to do these things?
+
+    // And then this method, BuildHelloWorldGraph
+    // The graph building process, yeah I don't get it.
+    // Hmm, no okay, that doesn't even matter though does it? No it doesn't.
+    // What I need is an example that is getting the comments from something
+    // This is seemingly just manually creating comments with hard-coded strings
+
+    // Okay, yeh, no
+    // I think this example is just showing how you can use CodeDom to create an XML file
+
+    // It outputed this xml and an .exe and a microsoft access file or something
+    /*
+<doc>
+    <assembly>
+        <name>HelloWorld</name>
+    </assembly>
+    <members>
+        <member name="T:Samples.Class1">
+             <summary>
+             Create a Hello World application.
+             </summary>
+             <seealso cref="M:Samples.Class1.Main" />
+            </member>
+        <member name="M:Samples.Class1.Main">
+             <summary>
+             Main method for HelloWorld application.
+             <para>Add a new paragraph to the description.</para>
+             </summary>
+            </member>
+    </members>
+</doc>
+    */
     static string providerName = "cs";
     static string sourceFileName = "test.cs";
     public void MicrosoftReadMeExample()
