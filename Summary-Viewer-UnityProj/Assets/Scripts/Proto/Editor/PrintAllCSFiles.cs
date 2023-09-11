@@ -47,6 +47,7 @@ public class PrintAllCSFiles : MonoBehaviour
         // It's just that it has to be an editor script
         #endregion
 
+        #region CodeDom Pre-Test
         // Okay, two options here
         // One is to use this CodeDom thing
         // The other is to just make a thing that will read these files and get what it needs
@@ -68,8 +69,13 @@ public class PrintAllCSFiles : MonoBehaviour
         // So what is better?
         // Bunkering down and just figuring out CodeDom?
         // Or just focusing on making progress and doing it manually?
+        #endregion
 
+        // Okay, I think I gotta just make a compiler then
+        // Just straight up have this thing read the .cs files
+        // And I program a bunch of logic for processing them
 
+        // (And then I found out about the code analysis stuff from microsoft)
     }
 
     void PrintAllFileLengthsInLines()
