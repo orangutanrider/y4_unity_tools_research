@@ -7,8 +7,66 @@ using System.Linq;
 
 namespace EditorUtilities.AttributedSerializedExtensions
 {
+
+    // trivia test1
+    /// <summary>
+    /// trivia test2
+    /// </summary>
+    public class Test
+    {
+
+    }
+
+    /**
+     * E
+
+     Multiline test 1
+     e 
+     e
+     e
+    
+     **/
+
+    /*
+     * e
+     * 
+     Multiline test2
+
+    ee
+    w
+     */
+
+    /**
+    <summary>
+
+    Multiline test 5
+    El Gringo
+
+    ee
+    ee
+    ee
+    ee
+
+    </summary>
+    **/
     public static class AttributedSerializedExtensions
     {
+        // trivia test3
+        /// trivia test4
+
+        /* Multiline test 3
+         * 
+         * E
+         
+        E
+        E E  */
+
+        /** Multiline test 4
+         * 
+         * 
+         * E
+         **/
+
         #region GetInheritedPropertiesAttributedWithType()
         /// <summary>
         /// Will recursively look through classes and fill a list with objects of type InheritedSerializedProperties which each contain a list of SerializedProperties. 
