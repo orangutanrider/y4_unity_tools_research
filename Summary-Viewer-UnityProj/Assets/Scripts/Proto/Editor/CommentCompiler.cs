@@ -1,14 +1,18 @@
+using UnityEngine;
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+
+using System.Xml;
 using System.IO;
 using System.Text;
+//using System.Text.RegularExpressions;
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System;
 using Microsoft.CodeAnalysis.Text;
-//using System.Text.RegularExpressions;
 
 [CreateAssetMenu(fileName = "CommentCompilerTest", menuName = "Misc/CommentCompilerTest")]
 public class CommentCompiler : ScriptableObject
@@ -22,7 +26,7 @@ public class CommentCompiler : ScriptableObject
         //}
 
         string path = GetScriptPaths()[0];
-        PrintClassDocumentationComments(File.ReadAllText(path));
+        PrintClassSummary(File.ReadAllText(path));
     }
 
     string[] GetScriptPaths()
@@ -317,17 +321,331 @@ public class CommentCompiler : ScriptableObject
 
         foreach (SyntaxNode classDecleration in classDeclerations)
         {
-            IEnumerable<SyntaxNode> ancestors = classDecleration.Ancestors();
             SyntaxTriviaList triviaList = classDecleration.GetLeadingTrivia();
 
             foreach (SyntaxTrivia trivia in triviaList)
             {
-                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)) { continue; }
-                Debug.Log(CreateStringFromSpan(programText, trivia.Span));
+                if (!trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)) { continue; }
+                Debug.Log(CreateStringFromSpan(programText, trivia.FullSpan));
             }
         }
 
         // okay never mind
         // i can just use this thing GetLeadingTrivia()
+    }
+
+    void PrintSinglePerClassDocumentationComments(string programText)
+    {
+        #region CountAllClassDeclerations() copy pasted
+        // look through node
+        // if node is namespace or class
+        // then descend one node
+
+        // open set, closed set
+        // scan first node for all namespace and class declerations
+        // add to open set
+        // scan open set for the same, if nothing found add to closed set
+        // if node is in the closed set, do not scan
+        // return all documentation comments
+
+        List<SyntaxNode> openSet = new List<SyntaxNode>();
+        List<SyntaxNode> closedSet = new List<SyntaxNode>();
+
+        List<SyntaxNode> classDeclerations = new List<SyntaxNode>();
+
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(programText);
+        CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+        openSet.Add(root);
+
+        const int current = 0;
+
+        while (openSet.Count > 0)
+        {
+            if (closedSet.Contains(openSet[current]))
+            {
+                openSet.RemoveAt(current);
+                continue;
+            }
+
+            foreach (SyntaxNode child in openSet[current].ChildNodes())
+            {
+                if (!child.IsKind(SyntaxKind.ClassDeclaration) && !child.IsKind(SyntaxKind.NamespaceDeclaration))
+                {
+                    closedSet.Add(child);
+                    continue;
+                }
+                openSet.Add(child);
+            }
+
+            closedSet.Add(openSet[current]);
+            if (openSet[current].IsKind(SyntaxKind.ClassDeclaration))
+            {
+                classDeclerations.Add(openSet[current]);
+            }
+            openSet.RemoveAt(current);
+        }
+        #endregion
+
+        foreach (SyntaxNode classDecleration in classDeclerations)
+        {
+            SyntaxTriviaList triviaList = classDecleration.GetLeadingTrivia();
+
+            bool firstFound = false;
+
+            for (int loop = triviaList.Count - 1; loop > -1; loop--)
+            {
+                SyntaxTrivia trivia = triviaList[loop];
+
+                if (firstFound == true) { continue; }
+                if (!trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)) { continue; }
+                firstFound = true;
+                Debug.Log(classDecleration.SpanStart.ToString() + " " + CreateStringFromSpan(programText, trivia.FullSpan));
+            }
+        }
+    }
+
+    void PrintClassDocumentationComment(string programText)
+    {
+        #region CountAllClassDeclerations() copy pasted
+        // look through node
+        // if node is namespace or class
+        // then descend one node
+
+        // open set, closed set
+        // scan first node for all namespace and class declerations
+        // add to open set
+        // scan open set for the same, if nothing found add to closed set
+        // if node is in the closed set, do not scan
+        // return all documentation comments
+
+        List<SyntaxNode> openSet = new List<SyntaxNode>();
+        List<SyntaxNode> closedSet = new List<SyntaxNode>();
+
+        List<SyntaxNode> classDeclerations = new List<SyntaxNode>();
+
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(programText);
+        CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+        openSet.Add(root);
+
+        const int current = 0;
+
+        while (openSet.Count > 0)
+        {
+            if (closedSet.Contains(openSet[current]))
+            {
+                openSet.RemoveAt(current);
+                continue;
+            }
+
+            foreach (SyntaxNode child in openSet[current].ChildNodes())
+            {
+                if (!child.IsKind(SyntaxKind.ClassDeclaration) && !child.IsKind(SyntaxKind.NamespaceDeclaration))
+                {
+                    closedSet.Add(child);
+                    continue;
+                }
+                openSet.Add(child);
+            }
+
+            closedSet.Add(openSet[current]);
+            if (openSet[current].IsKind(SyntaxKind.ClassDeclaration))
+            {
+                classDeclerations.Add(openSet[current]);
+            }
+            openSet.RemoveAt(current);
+        }
+        #endregion
+
+        List<string> classDocumentationComments = new List<string>();
+
+        foreach (SyntaxNode classDecleration in classDeclerations)
+        {
+            SyntaxTriviaList triviaList = classDecleration.GetLeadingTrivia();
+
+            bool firstFound = false;
+
+            for (int loop = triviaList.Count - 1; loop > -1; loop--)
+            {
+                SyntaxTrivia trivia = triviaList[loop];
+
+                if (firstFound == true) { continue; }
+                if (!trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)) { continue; }
+                firstFound = true;
+                classDocumentationComments.Add(CreateStringFromSpan(programText, trivia.FullSpan));
+            }
+        }
+
+        List<string> processedComments = new List<string>();
+
+        foreach (string documentationComment in classDocumentationComments)
+        {
+            // https://stackoverflow.com/questions/1547476/split-a-string-on-newlines-in-net
+            string[] lines = documentationComment.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            string processedComment = "";
+
+            foreach (string line in lines)
+            {
+                // calculate amount of white space in indentation
+                bool firstRealCharFound = false;
+                int whiteSpaceCount = 0;
+                foreach (char character in line)
+                {
+                    if(firstRealCharFound == true)
+                    { continue; }
+
+                    if (char.IsWhiteSpace(character))
+                    {
+                        whiteSpaceCount++;
+                    }
+                    else
+                    {
+                        firstRealCharFound = true;
+                    }
+                }
+
+                Debug.Log(whiteSpaceCount);
+
+                string processedLine = line;
+                processedLine = processedLine.Remove(0, whiteSpaceCount); // remove indentation
+                processedLine = processedLine.Remove(0, 3); // remove '///'
+
+                // add to comment
+                processedComment = processedComment + processedLine;
+                processedComment = processedComment + Environment.NewLine;
+            }
+
+            Debug.Log(processedComment);
+            processedComments.Add(processedComment);
+        }
+    }
+
+    void PrintClassSummary(string programText)
+    {
+        #region CountAllClassDeclerations() copy pasted
+        // look through node
+        // if node is namespace or class
+        // then descend one node
+
+        // open set, closed set
+        // scan first node for all namespace and class declerations
+        // add to open set
+        // scan open set for the same, if nothing found add to closed set
+        // if node is in the closed set, do not scan
+        // return all documentation comments
+
+        List<SyntaxNode> openSet = new List<SyntaxNode>();
+        List<SyntaxNode> closedSet = new List<SyntaxNode>();
+
+        List<SyntaxNode> classDeclerations = new List<SyntaxNode>();
+
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(programText);
+        CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+        openSet.Add(root);
+
+        const int current = 0;
+
+        while (openSet.Count > 0)
+        {
+            if (closedSet.Contains(openSet[current]))
+            {
+                openSet.RemoveAt(current);
+                continue;
+            }
+
+            foreach (SyntaxNode child in openSet[current].ChildNodes())
+            {
+                if (!child.IsKind(SyntaxKind.ClassDeclaration) && !child.IsKind(SyntaxKind.NamespaceDeclaration))
+                {
+                    closedSet.Add(child);
+                    continue;
+                }
+                openSet.Add(child);
+            }
+
+            closedSet.Add(openSet[current]);
+            if (openSet[current].IsKind(SyntaxKind.ClassDeclaration))
+            {
+                classDeclerations.Add(openSet[current]);
+            }
+            openSet.RemoveAt(current);
+        }
+        #endregion
+
+        #region CommentProcessing copy and pasted
+        List<string> classDocumentationComments = new List<string>();
+
+        foreach (SyntaxNode classDecleration in classDeclerations)
+        {
+            SyntaxTriviaList triviaList = classDecleration.GetLeadingTrivia();
+
+            bool firstFound = false;
+
+            for (int loop = triviaList.Count - 1; loop > -1; loop--)
+            {
+                SyntaxTrivia trivia = triviaList[loop];
+
+                if (firstFound == true) { continue; }
+                if (!trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)) { continue; }
+                firstFound = true;
+                classDocumentationComments.Add(CreateStringFromSpan(programText, trivia.FullSpan));
+            }
+        }
+
+        List<string> processedComments = new List<string>();
+
+        foreach (string documentationComment in classDocumentationComments)
+        {
+            // https://stackoverflow.com/questions/1547476/split-a-string-on-newlines-in-net
+            string[] lines = documentationComment.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            string processedComment = "";
+
+            foreach (string line in lines)
+            {
+                // calculate amount of white space in indentation
+                bool firstRealCharFound = false;
+                int whiteSpaceCount = 0;
+                foreach (char character in line)
+                {
+                    if (firstRealCharFound == true)
+                    { continue; }
+
+                    if (char.IsWhiteSpace(character))
+                    {
+                        whiteSpaceCount++;
+                    }
+                    else
+                    {
+                        firstRealCharFound = true;
+                    }
+                }
+
+                string processedLine = line;
+                processedLine = processedLine.Remove(0, whiteSpaceCount); // remove indentation
+                processedLine = processedLine.Remove(0, 3); // remove '///'
+
+                // add to comment
+                processedComment = processedComment + processedLine;
+                processedComment = processedComment + Environment.NewLine;
+            }
+
+            processedComments.Add(processedComment);
+        }
+        #endregion
+
+        foreach (string comment in processedComments)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(comment);
+            XmlNodeList summaryNodes = doc.GetElementsByTagName("summary");
+
+            Debug.Log(summaryNodes.Count);
+
+            foreach(XmlNode node in summaryNodes)
+            {
+                Debug.Log(node.InnerText);
+            }
+        }
     }
 }

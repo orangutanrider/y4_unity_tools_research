@@ -8,7 +8,10 @@ using System.Linq;
 namespace EditorUtilities.AttributedSerializedExtensions
 {
 
+    /// documentation comment 2
+
     // trivia test1
+
     /// <summary>
     /// trivia test2
     /// </summary>
