@@ -1,0 +1,6 @@
+whenever one is drawn
+it needs to add itself to a list along 
+these lists need to be seperated by host objects
+so whenever it adds itself to a list it needs to check the host object of the other lists
+if none of them match this one, then it adds itself
+

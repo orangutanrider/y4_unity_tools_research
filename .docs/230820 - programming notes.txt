@@ -1,0 +1,26 @@
+========
+Discovery:
+It just doesn't work if you try and draw them all at once, outside the OnGUI function
+It simply doesn't
+What this means, is that it'll be impossible to group all field under the RequiredReference thing when they're mixed in with other fields
+This is relevant when dealing with base class fields
+This is unfortunate, but the project is still be useful without that functionality
+
+Although, theoretically this could be fixed via a custom inspector
+Still though, I don't like this option
+One reason is that I've not made anything like it before; it'll take a while and I could be wrong about it being possible this way
+And another reason is that it creates friction between what inspector is important; I imagine the original inspector just being forgotten about, If I do this.
+That is bad because it'll just end up being all messy on that end
+
+Hmm, I think there is one option regarding this.
+I could to the thing the GameDevGuide guy did, where if the thing uses a custom inspector, then the original inspector just hosts a button for opening that custom inspector
+This way, the original inspector is still what you mainly look to
+
+========
+Discovery2
+
+It seems like all the EditorGUI functions are required to be executed inside the OnGUI function in order to do anything...
+
+========
+The whole thing needs to get moved down by one field so i can fit in the foldout header
+However, first of all, it may be a good idea to see If I can even get the foldout header to draw at all 

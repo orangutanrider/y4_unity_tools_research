@@ -1,0 +1,111 @@
+========
+option 1 
+generate xml documentation files for all monobehaviours
+or just have something read all monobehaviours and save their summary comment to a txt file
+
+okay
+monobehaviours can be partial which complicates things
+
+========
+read every .cs file in selected assembly definitions
+or selected folders
+
+once the word class is reached in a line
+move along that line until this ':' is found, then look for %MonoBehaviour%
+
+if something is found... eghhh
+this is so big u know? This is really big...
+it's like a mini piece of software
+
+if monobehaviour is found... yeh, it'd have to look above for the comment
+and it'd have to read that somehow
+
+yeh
+nah...
+this sucks
+too chunky
+
+========
+Option 2
+Use an attribute to mark a function
+that returns a string
+or use a constant actually, yeh, an attributed constant
+
+this isn't too bad, but it's ugly
+it isn't readable outside the readme inspector
+and it's also gonna get compiled
+
+what else is there though?
+
+I could use a path instead of having to write the thing there
+so there's an attributed constant string for the path to a text file for the class
+and that text file is the class's summary, that i write out
+yeh, that'd be better
+that way in the future i can also extend it to be automated
+
+yeh
+this is good
+
+it's still not as good as just reading the summaries directly
+but it's the next best thing
+
+oh yeh, i should make the attribute an editor thing too
+so it forces people to make the constant editor only compiled
+with the
+#UNITY_EDITOR
+things
+
+========
+Okay actually though
+These paths should be stored in a scripable object, instead of the script declerations themselves
+That makes it more open to automation
+Otherwise, I'd have to write to the cs files if there was any kind of automation to the path string creation
+
+it makes other stuff more simple aswell
+cause it can just have a static method for getting a summary file via a monobehaviour type reference
+
+i guess the only question now 
+is do i only do this for monobehaviours?
+I could definetly do it for scriptable objects too
+
+but yeh other stuff?
+is there any point to that?
+I'd like it to have the funcionality to expand into generating the files for other types
+for it to be optional
+
+hmm
+I think it'd be fine to make this thing do this for all types
+on one condition
+there needs to be an in-editor way of viewing their contents
+it needs to be that I don't have to go into a txt editor to change them
+it could possibly even be that i should be able to edit them too
+
+now though, this is just starting to sound like I make them as scriptable objects doesn't it?
+Yeh it does. I don't really want to do that though.
+I'm worried that it'd be a memory and storage sink, having them all as scriptable objects.
+
+Hmm...
+I think it should be fine in that regard.
+Then... I think the only other complication should be if an external program wants to get these files.
+It wouldn't be able to know what they were by file type.
+I think that should be fine though. There're plenty of methods for getting scriptable objects.
+
+========
+So then
+My only other concern is with the tools for managing all these
+There will be complications with that
+
+One thing I want is to auto generate them all
+And just have them be empty 
+It'd make it easier for me to fill out the readme things
+
+Next thing, they need to be ignored by stuff like the readme inspector
+As it can technically inspect them, which is kinda weird
+
+Then concerns with the tools
+I generate
+but what about migrating and so on?
+What about deleting?
+What about deleted scripts?
+
+Yeh, I think I'll have to tackle this as a whole thing

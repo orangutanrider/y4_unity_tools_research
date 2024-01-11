@@ -1,0 +1,7 @@
+so the idea is to have it display these in the inspector
+
+if this isn't possilbe i could create a custom inspector that displays these alone itself
+
+the reason i consider that is because i'm wondering if doing this entails creating a custom editor for every script (unless i do it like this)
+
+I think it should be possible just in the inspector though

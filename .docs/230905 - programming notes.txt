@@ -1,0 +1,72 @@
+========
+foreach method in type storage
+
+check if method is valid
+
+then foreach serializedObject in main list
+
+invoke the method and pass in that serialized object
+
+store the return data of the methods in a big list
+
+========
+options
+
+1
+just have the method function like this
+and offload most of the computing work to other classes
+
+hmm
+i think this is the only option
+i was thinking of other stuff for a bit there
+but this is the only thing that'll really work i think
+everything else will be too restricting
+
+okay no
+
+2
+I can use attributes to add extra context to the methods 
+I can allow a dev to have one of the methods be attributed with something that restricts it to a specific type
+And i can have it so that you can also have it be for all and stuff
+
+========
+okay... this code is so bad
+okay fixed
+
+========
+yeah
+
+the original idea with the things linked to messages
+that is impossible
+
+pretty sure 
+
+yeah
+how could that ever be done?
+
+it'd need to be that the properties themselves post the messages then
+
+yeah
+if i want this it has to all be done manually doesn't it?
+
+and linking it to a message?
+hmm
+yeh it can be done
+
+is this worth it though?
+
+
+basically
+i could have an interface for drawing these
+but the logic of it
+would have to be handled by the attribute drawer thing
+
+yeh this isn't so bad
+it's just not as flexible and easy as i wanted it to be
+i wanted that'd it'd just see a message
+and then go
+
+but that ain't happening
+
+I think it'll be best to just keep it generic
+and have it not link to the help inspector

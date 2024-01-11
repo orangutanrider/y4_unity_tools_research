@@ -1,0 +1,56 @@
+option 1: events
+option 2: store the editors in somekind of list and ping them with something generic 
+
+it needs the editor to know what object is being inpsected by this editor
+so it needs to store that
+and then it needs to get messages from that editor
+
+
+interface for getting messages from edtiros
+
+but what for editors getting the message inspectors data?
+it needs to ping those other editors when it does this
+hmm
+no it needs to get those editors
+it needs to send out a ping that editors can respond to and add themselves to this
+
+
+okay
+there needs to be a static method on this window
+that other editors can use
+no though
+because they need to know when this thing is doing anything
+they need to respond to it, not proactively do stuff
+
+hmm
+actually i think the easiest way to do this is manually
+the logic needs to be seperate from its editor
+for the scene/asset ref editor
+this thing just needs to have the logic for displaying the messages based on the attributes of what's being inspected
+
+
+hmm
+actually what is even the point of this thing
+i think there isn't one
+
+okay no there could be one
+it could be like a readme inspector
+but when i think of doing that
+i would also like it to still display the scene/asset ref editor messages
+
+
+
+
+okay wait a second
+on selection change is called globally
+its not blocked by the lock thng
+this means
+that the other editors can call a static function on the message inspector
+passing in their current selections
+yeh? I think so
+complications might arise from the execution order of these though
+how can that be dealt with?
+okay no, i think that will work though
+
+so it'll be a readme inspector
+and it'll display messages and stuff too

@@ -1,0 +1,142 @@
+========
+I think the problem is that it is drawing the gui once
+but on gui has to be called multiple times for it to actually get drawn
+
+so it needs someway of knowing when the first draw call has happened for that group
+and it needs to reset itself?
+
+it needs to be able to handle the draw call once as a group
+and somehow filter out the duplicates 
+
+okay idea
+each list item will get its draw call
+and then it will only draw once all have recieved their draw call
+and then it resets them all
+
+========
+okay this kinda worked
+
+but i have a new issue now
+I think Unity uses like a bunch of serialized properties for drawing its inpsector elements
+It isn't one per field I think
+
+I was using this field for getting a required ref from the list
+like this
+GetRequiredRef(SerializedProperty serializedProperty, RequiredRefGroup searchGroup)
+and i at first did this via direct comparison
+but this never worked, it would always return null
+so then i did it by name, and this did work
+
+this could either be caused by it not being the same property each time it updates
+as in they die and create again or something like this
+or it is that each serialized property is a part of a larger serialized property, hence them all sharing the same name
+
+and my register code isn't getting any of those since it does the fill list thing and then just rejects everything else that gets thrown at it
+
+This would also explain why it creates spaces on the inspector, it could be that the only properties being stored are those spaces
+
+hmm though
+how is it the case that it never drew anything via direct comparison
+
+this is very strange isn't it
+cause it will draw them if i just plug them all in directly in the OnGui 
+and this makes me think that it is that it's a bunch of different things forming one field
+hmm, maybe it is both
+maybe the references are impermanent and multiple per field
+
+I have looked at the documentation for this btw
+but there is nothing covering these specific details and such
+I just have to infer it from the functions and code involved with them
+
+========
+Okay, let's just go off of a hypothesis and see if it works
+
+Currently, the system doesn't work because it is only drawing the space elements of their respective SerializedProperties
+
+The system needs to be updated to store all serialized properties
+And possibly it needs to be updated to refresh its cache every time the full set of properties have been drawn
+
+This 2nd point, i'm unsure if it is possible
+Maybe through functions like this, it is:
+serializedProperty.CountInProperty()
+
+========
+int nextCount = 0;
+bool nextBool = true;
+while(nextBool == true)
+{
+	nextBool = newRequiredRef.serializedProperty.Next(true);
+        nextCount++;
+}
+
+Debug.Log(nextCount);
+
+==
+I ran that code in the foreach loop inside the fill list function
+it returned 9, 6, 3
+which could imply that each of these are made up of 3 elements
+i also printed the serializedProperty.CountInProperty()
+which would always return a value of 1
+
+i'm also getting error messages on the name comparison line
+inside the getRequiredRef function, It is the following message:
+InvalidOperationException: The operation is not possible when moved past all properties (Next returned false)
+
+not sure what to think of the errors
+one guess at this is that the editor is holding the properties for a time, then disposing of them
+and after they are disposed you can't get anything from them
+another guess is that the editor is using somekind of cursor for reading these which is why you can't read them when the thing has moved past them
+
+yeh i think it is this cursor thing
+afterall, there is nothing in the EdutirGUILayout field that allows you to determine anything about where it is being drawn
+so there must be something internal in unity that is deciding that itself
+and of course, that's what the next function is doing isn't it?
+that's why it has no proper return type, it's just moving that cursor along
+
+jesus... why do i have to find this out this way?
+
+========
+Aha!
+I can't use EditorGUILayout, I've found that out now
+when you use EditorGUILayout it creates the fields yes, but there're also blank spaces inbetween them
+and that's because the original fields are still there, but they haven't been drawn
+so using EditorGUILayout just draws the field again
+okay...
+this also makes me realise something
+it isn't possible to draw all these at once
+the system needs to go through onGUI as normal
+
+and then it needs to insert stuff like the dropdown by detecting that it is the last property that is being drawn
+
+========
+okay...
+
+hmm
+something im considering quite a lot now
+is custom inspector for these
+but i also think that that would be annoying
+imagine an object that just has one required reference
+and you have to use a custom inspector for it
+hmm, maybe not so bad though
+
+still though, I think the main problem with this
+is that it obuscates the data
+there needs to be some compromise
+like having the help messages appear on the original inspector
+hmm though
+
+yeh no
+it's either one or the other
+because the reason i'm considering it is because it'd be 20x easier to program
+and more consistent too
+there wouldn't be any variance in how it displays the data
+
+while if i do use the inspector
+I think i'll likely have to use attributes to structure it 
+as in have the help messages be an attribute or something
+as I don't know how else i'd put them at the bottom
+
+hmm
+what is better?
+doing both would be annoying
+because then I'd just ask why even have them in the original inspector at all u know?

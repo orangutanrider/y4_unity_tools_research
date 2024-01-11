@@ -1,0 +1,13 @@
+========
+Okay
+If I'm straight up making a interpreter compiler kind of thing
+Then there needs to be some basis to how I'm gonna make this thing work
+
+I think first idea is to have it read letter by letter or word by word
+and then it decides if something is a word or not via if its got spaces or new lines around it
+
+hmm, there are some special characters aswell though
+stuff like () are also kind of seperators
+
+and then whenver it comes across a { or a }
+it needs to increment somekind of nesting counter

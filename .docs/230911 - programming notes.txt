@@ -1,0 +1,30 @@
+========
+when a class definition is found
+scroll up until a trivia element matching of kind single line documentation comment is found
+or if any non-trivia element is found before that, then stop looking
+
+okay never mind
+i can just use this thing GetLeadingTrivia()
+
+========
+open set, closed set
+scan first node for all namespace and class declerations
+add to open set
+scan open set for the same, if nothing found add to closed set
+if node is in the closed set, do not scan
+return all documentation comments
+
+========
+Okay
+What now?
+
+get it to specifically print documentation comments
+
+get it to print the first documentation comment declared nearest to the class
+
+get it to print the summary inside that documentation comment
+
+get it to apply new lines based on paragraph xml tags
+
+get it to remove xml tags that the code doesn't know what to do with
+

@@ -1,0 +1,6 @@
+we can open the foldout group when the refGroup is created
+
+to close it
+I somehow need to know which of the properties is the last in the list
+
+I think the only way of doing that is somehow accessing the class that has implemented the attribute and getting all properties implementing it from it 

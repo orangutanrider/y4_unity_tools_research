@@ -1,0 +1,42 @@
+Implementation Ideas
+
+========
+Every Interface that wants to be serialized is created with a duplicate class
+Hopefully the class can be declared in the same file as the interface, otherwise this would be a bit combersum with the number of files in visual stuio
+Anyways, then that class implements something in its declaration bit
+and that accepts an implementation for the interface type
+example below
+
+class ClassName : SerializableInterface<Interface>
+
+
+with this method I'm expecting to have to do something weird in the custom inspector or whatever it is
+question is if the field would be storing the interface or this class as a reference?
+and if so, would it have to use get component
+or would it have to have somekind of cache
+
+I think this can work but it doesn't seem like the cleanest from the outside
+
+==
+hmm, maybe this thing ISerializationCallbackReceiver
+
+OnBeforeSerialize()
+"
+When an object is about to be serialized, Unity invokes the OnBeforeSerialize() callback. Inside this callback is where you can transform your data into something Unity understands. For example, to serialize a C# Dictionary, copy the data from the Dictionary into an array of keys and an array of values.
+"
+
+"After the OnBeforeSerialize() callback is complete, Unity serializes the arrays."
+
+OnAfterDeserialize()
+"
+Later, when the object is deserialized, Unity invokes the OnAfterDeserialize() callback. Inside this callback is where you can transform the data back into a form that’s convenient for the object in memory. For example, use the key and value arrays to repopulate the C# Dictionary.
+"
+
+hmm, i don't really understand these
+but i'm geussing i will need to use them
+
+hmm
+https://www.youtube.com/watch?v=d2MZNUoLuRo
+
+========
+https://www.youtube.com/watch?v=vLKeqS1PeTU

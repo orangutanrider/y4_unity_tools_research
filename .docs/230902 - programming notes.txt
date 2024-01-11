@@ -1,0 +1,25 @@
+========
+it needs to use the serialilzed object reference to decide where and what its messages are
+
+the editor thingy needs to store something right
+yeh
+the editor message function needs to send the scriptable objects that it is sending messages on basically
+
+========
+the data needs to be combined
+how to do that?
+
+one option is to have each help message provider contain a field for editor messages
+hmm, dunno about this though
+
+okay no
+just go through each component instead of going through each messages object
+
+okay no i can't do that...
+
+hmm
+this sucks
+
+okay yeh
+these just needs to be a master list that these guys all write to
+and the master list contains one entry per component
