@@ -1,26 +1,38 @@
 # Pre-Year4 Unity Tools R&D
-This isn't a university project; I did this work during the holidays between year3 and 4, it was self-directed and self-motivated. It's a few general purpose tools, that I would've used in all my Unity projects going foward; The tools aren't specialized to any kind of game, though they were informed and based on my work-flow, in Unity. A help-message inspector, a reference inspector, and a readme inspector. There're also some minor things scattered in there. I had plans for more tools too, you can maybe find details on those ideas in the docs.
+![Tools Banner](https://github.com/orangutanrider/GDPAbertayUndergrad-UnityToolsResearch/assets/99553929/30068ea5-c42c-4a4c-86dc-5b683d7981c4)
+#
+This wasn't a university project, it was in the holidays between year3 and 4.
+I was developing generically applicable tools, for use in all of my Unity projects, going foward. The tools are as follows:
+- Scene/Asset Reference Inspector.
+- Help/ReadMe Inspector.
 
-With the Unity pricing debacle I stopped developing these; I no longer look to use Unity for my personal projects. The pricing didn't really matter to me, it was the fact that I saw Unity as a company that did not have my best interests in mind. To give a summary, Unity seems to be more of a platform than a game-engine. It does suck, I was really exicted about making these tools, and I put in a lot of work, but it is what it is. 
+There were more ideas beyond this, but these are the things that you can see in the code.
+Both of these were custom inspectors, specifically not editors; They mirrord the behaviour of the default Inspector, but displayed the inspected differently. I created a base-class that creates this behaviour.
 
-## Reference Inspector (SceneAssetRefEditor)
-The reference inspector is based on a reference-parameter typing system, that I had naturally come to create, after enough time with Unity. For value parameters, I typically used scriptable objects to store that data; Even for a one-off component like a player character controller, I'd still store their move-speed, jump-height, and so on, inside a scriptable object. Reference parameters are what was on my monobehaviours and stuff, their value data would be recieved via a scriptable object reference. For project management purposes, I found myself categorising them in one of three fields: Required reference, Nullable required, Component nullable. At first I did this through editor headers and stuff, eventually I wanted to automate that though, hence the reference inspector.
+This project was generally my introduction to more complex programming problems. I explored new topics with the Help/ReadMe Inspector. It was my first time writing code that that interacted with the file system, and my first time writing code that read files; I used Microsoft's code analysis package for C#. I learned to take things slow, to solve one problem at a time, to progress my understanding; I became familiar with the fact that I couldn't rush this learning. Generally, it developed my problem solving.
 
-- Required Reference is a reference that the script cannot function without.
-- Nullable Required is a reference that the script is supposed to have, and won't fully function if it doesn't have, but it won't crash the game or throw errors when it doesn't have the reference.
-- Component Nullable is a reference that is completely optional as a parameter.
+### Scene/Asset Reference Inspector
+Across my Unity projects, a conventione eventually emerged which was the categorisation of reference fields into one of three kinds: Required Reference, Nullable Required, and Component Nullable.
+These indicate the strength of the dependancy. 
+- A required reference, creates a crash when it is null.
+- A nullable required is expected, but will not crash.
+- A component nullable, is optional.
 
-This wasn't going to be an editor, this was a literal inspector, like the one Unity uses to show you the editors of components. It was a seperate way to view data, a seperate unique inspector, that'd format data differently. The plan was to tag parameters using C# attributes, with their relevant category/type; Then this inspector would automatically show an editor, specifically for the reference fields. It even worked with inherited parameters; An annoyance I always had was that if you inherited a type, you'd jumble up things like headers, that were created through drawer attributes; I'd end-up with multiple headers saying "Required References", it was messy. It'd essentially force you to create a custom editor for the component, which is time consuming.
+In code, the easist way to establish these categories I found, was to use Drawer attributes i.e. [Header("Required References")] and so on. The problem with this, is that inheritance breaks it.
+When inherited, fields of each category will not be merged under shared headers, it'll repeat itself, creating a messy editor. One way to fix, is to just create custom editors, but this is time consuming.
 
-Unity didn't really support creating your own custom inspectors, so I had to bodge an inspector together with some of the lower-level GUI tools. Eventually I got it working exactly as Unity's does, I just thought I'd mention that.
+Not super problematic, but I wanted this categorisation to be formalised in the code, so I decided to create this inspector. 
 
-It was also going to display warning messages in the HelpMessage inspector or something; I say "or something" because I think I eventually cancelled the HelpMessage inspector, becuase it was kind-of useless, or that it couldn't be implemented properly. But yeah it was going to use the HelpMessage GUI thing in Unity to display messages of varying warning levels, to inform that a component had, say, a RequiredReference missing.
+The editor works via C# attributes, it extracts the fields attributed with the relevant category, and displays them under respective drop down headers. It works with inherited fields too, no jumbling of headers.
 
-## ReadMe Inspector (SummaryViewer)
-The ReadMe Inspector was going to display text documentation of any inspected object. Again, it would function as a literal inspector, not an editor; I repeat this because people often call custom editors custom inspectors, it can be confusing. It was going to do this, by having a parralel scriptable object that stores the readme message for every relevant type. My plan was to automatically generate some of these, by extracting the documentation comments in code. I would also have tools for myself to manually create them and override the generation functionality, incase I wanted to edit the message to be different from the auto-generated one. It would've been awesome, I could've even gitignored the generated ones. It could've been adapted to utallise the XML tags too, so that things like headers would show in the ReadMe inspector. I think this would've been super powerful, developers wouldn't have to exit unity or check the code to understand scripts that had been documented, they could work fully in Unity.
+### Help/ReadMe Inspector
+This inspector had two functions. It acted as a hub for help-messages and as display for readme/documentation information, about an inspected object. The readme functionality was never completed.
 
-However, there were some issues that came up from this. Mainly with generating the scriptable objects from the documentation comments. The issue with this is C#, and that it is like having another compiler step. These things aren't deal-breakers but it'd mean that it'd be quite a difficult thing to create. To extract documentation comments, you have to read the script files themselves; I did this by utalising the code analysis package from microsoft. The problem with having to read the files though, is that class declerations are not linked to files; You can have multiple classes in one file, you can even have a single class spread across multiple files, through partial classes. Accounting for these cases would mean quite a bit of complexity in the code, it could be done, you'd just have to do a bit of bug-fixing. The performance impact of having to generate these scriptable objects was unknown, my plan was to use a scriptable object that would act as a control panel, utallising references to assembly definitions, to manage the performance.
+The plan was to link a scriptable object to each inspectable object definition. These scriptable objects could be written to manually, or generated from source via extracting documentation comments.
 
-## HelpMessage Inspector
-With multiple inspectors, I'd expect the dev to not always have each of them open. The purpose of the help message inspector was that it'd provide a central hub for each inspector to post their messages to. That way the dev can be notified of something they should do on an inspector, that they don't currently have open. I think I eventually dropped this idea. I can't remember exactly why, it might've been that the implemtation wasn't working out, or that I planned to just use the default inspector for this. I think it might've been that I had come to think that help messages are too niche to need a central hub, I remember realising that there wasn't enough uses for them, or atleast with how you had to implement them.
+The desired functionality for the help messages, ended up not being possible. I cannot effectively delve into why, forgive me, but my documentation practices were still evolving at the time, and I do not remember the specifics of the problem. It did have some functionality, showing additional information about inspected objects, that could be given by the inspected object, or by other editors. You can investigate the documentation in .docs, if you wish to find out more.
 
+### Scriptable Objects as Structs
+Something that isn't a part of the project, but I did plan to do. With my use of Unity, scriptable objects eventually became a core part of my workflow. To define parameters of any kind, I would use them, even if for something one-off like a player controller. It helped to keep things organised.
+
+Eventually, I wanted to better manage access to scriptable objects, and the strategy I found was to utalise structs (to pass data by value rather than by reference). This way, a scriptable object cannot be modified during runtime. It was a lot of code though, I tried to find a way to automate it with inheritance but never did. With the knowledge I hold now, I'm unsure if it's a good idea or not; The performance impact is uninvestigated.
